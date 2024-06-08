@@ -1,24 +1,25 @@
-﻿using Microsoft.Data.SqlClient;
-using ProjetoFilmesApi.Modelo;
+﻿using ProjetoFilmesApi.Modelo;
 using System.Data;
+using MySql.Data.MySqlClient;
 
 namespace ProjetoFilmesApi.Banco
 {
     public class FilmeCadastro
     {
         //mudar Initial Catalog para filmes_cadastro depois
-        private readonly string conexao = "Data Source=.\\sqlexpress;Initial Catalog=Banco1;Integrated Security=true;TrustServerCertificate=True;";
+        private readonly string conexao = "Server=localhost;Database=agenda_filmes;Uid=root;Pwd=200296;";
+        
 
         public List<Filme> GetAllFilmes()
         {
             var filmes = new List<Filme>();
 
-            SqlConnection connection = new SqlConnection(conexao);
+            MySqlConnection connection = new MySqlConnection(conexao);
 
             connection.Open();
 
-            SqlCommand sqlCommand = new SqlCommand("SELECT * FROM Filmes", connection);
-            SqlDataAdapter adapter = new SqlDataAdapter(sqlCommand);
+            MySqlCommand sqlCommand = new MySqlCommand("SELECT * FROM Filmes", connection);
+            MySqlDataAdapter adapter = new MySqlDataAdapter(sqlCommand);
 
             DataTable dt = new DataTable();
             adapter.Fill(dt);
@@ -45,11 +46,11 @@ namespace ProjetoFilmesApi.Banco
         {
             var ator = new Ator();
 
-            SqlConnection connection = new SqlConnection(conexao);
+            MySqlConnection connection = new MySqlConnection(conexao);
             connection.Open();
 
-            SqlCommand sqlCommand = new SqlCommand($"SELECT * FROM Atores WHERE Id = {id}", connection);
-            SqlDataAdapter adapter = new SqlDataAdapter(sqlCommand);
+            MySqlCommand sqlCommand = new MySqlCommand($"SELECT * FROM Atores WHERE Id = {id}", connection);
+            MySqlDataAdapter adapter = new MySqlDataAdapter(sqlCommand);
 
             DataTable dt = new DataTable();
             adapter.Fill(dt);
@@ -76,12 +77,12 @@ namespace ProjetoFilmesApi.Banco
         {
             var atores = new List<Ator>();
 
-            SqlConnection connection = new SqlConnection(conexao);
+            MySqlConnection connection = new MySqlConnection(conexao);
 
             connection.Open();
 
-            SqlCommand sqlCommand = new SqlCommand("SELECT * FROM Atores", connection);
-            SqlDataAdapter adapter = new SqlDataAdapter(sqlCommand);
+            MySqlCommand sqlCommand = new MySqlCommand("SELECT * FROM Atores", connection);
+            MySqlDataAdapter adapter = new MySqlDataAdapter(sqlCommand);
 
             DataTable dt = new DataTable();
             adapter.Fill(dt);
@@ -102,12 +103,12 @@ namespace ProjetoFilmesApi.Banco
 
         public bool UsuarioAutorizado(Login login)
         {
-            SqlConnection connection = new SqlConnection(conexao);
+            MySqlConnection connection = new MySqlConnection(conexao);
 
             connection.Open();
 
-            SqlCommand sqlCommand = new SqlCommand($"SELECT * FROM Usuario WHERE Username = '{login.UserName}' AND Senha = '{login.Senha}'", connection);
-            SqlDataAdapter adapter = new SqlDataAdapter(sqlCommand);
+            MySqlCommand sqlCommand = new MySqlCommand($"SELECT * FROM Usuario WHERE Username = '{login.UserName}' AND Senha = '{login.Senha}'", connection);
+            MySqlDataAdapter adapter = new MySqlDataAdapter(sqlCommand);
 
             DataTable dt = new DataTable();
             adapter.Fill(dt);
@@ -126,14 +127,14 @@ namespace ProjetoFilmesApi.Banco
         {
             var filmes = new List<Filme>();
 
-            SqlConnection connection = new SqlConnection(conexao);
+            MySqlConnection connection = new MySqlConnection(conexao);
             connection.Open();
 
-            SqlCommand sqlCommand = new SqlCommand(@$"SELECT f.* FROM Filmes f
+            MySqlCommand sqlCommand = new MySqlCommand(@$"SELECT f.* FROM Filmes f
                                                         INNER JOIN FilmesUsuario fu ON fu.FilmeId = f.Id
                                                         WHERE fu.UsuarioId = {usuarioId}", connection);
 
-            SqlDataAdapter adapter = new SqlDataAdapter(sqlCommand);
+            MySqlDataAdapter adapter = new MySqlDataAdapter(sqlCommand);
 
             DataTable dt = new DataTable();
             adapter.Fill(dt);
@@ -167,12 +168,12 @@ namespace ProjetoFilmesApi.Banco
         {
             var filmes = new List<Filme>();
 
-            SqlConnection connection = new SqlConnection(conexao);
+            MySqlConnection connection = new MySqlConnection(conexao);
 
             connection.Open();
 
-            SqlCommand sqlCommand = new SqlCommand($"SELECT * FROM Filmes f WHERE f.Titulo LIKE '%{titulo}%'", connection);
-            SqlDataAdapter adapter = new SqlDataAdapter(sqlCommand);
+            MySqlCommand sqlCommand = new MySqlCommand($"SELECT * FROM Filmes f WHERE f.Titulo LIKE '%{titulo}%'", connection);
+            MySqlDataAdapter adapter = new MySqlDataAdapter(sqlCommand);
                 
             DataTable dt = new DataTable();
             adapter.Fill(dt);
@@ -201,12 +202,12 @@ namespace ProjetoFilmesApi.Banco
         public Filme InserirFilme(Filme filme)
         {
             string query = "INSERT INTO Filmes (Titulo, Nota, AtorId, Resenha, Genero) " +
-                             "OUTPUT INSERTED.Id " +
-                             "VALUES (@Titulo, @Nota, @AtorId, @Resenha, @Genero)";
+               "VALUES (@Titulo, @Nota, @AtorId, @Resenha, @Genero); " +
+               "SELECT LAST_INSERT_ID();";
 
-            using (SqlConnection connection = new SqlConnection(conexao))
+            using (MySqlConnection connection = new MySqlConnection(conexao))
             {
-                SqlCommand command = new SqlCommand(query, connection);
+                MySqlCommand command = new MySqlCommand(query, connection);
                 command.Parameters.AddWithValue("@Titulo", filme.Titulo);
                 command.Parameters.AddWithValue("@AtorId", filme.AtorId);
                 command.Parameters.AddWithValue("@Genero", filme.Genero);
@@ -225,9 +226,9 @@ namespace ProjetoFilmesApi.Banco
             string query = @"INSERT INTO FilmesUsuario (FilmeId, UsuarioId)
                              VALUES (@FilmeId, @UsuarioId)";
 
-            using (SqlConnection connection = new SqlConnection(conexao))
+            using (MySqlConnection connection = new MySqlConnection(conexao))
             {
-                SqlCommand command = new SqlCommand(query, connection);
+                MySqlCommand command = new MySqlCommand(query, connection);
                 command.Parameters.AddWithValue("@FilmeId", filmeId);
                 command.Parameters.AddWithValue("@UsuarioId", usuarioId);
 
